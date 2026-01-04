@@ -147,7 +147,6 @@ public:
 
     void registerMember()
     {
-        int id;
         string name, password;
 
         cout << "\n--- Member Registration ---\n";
@@ -159,16 +158,44 @@ public:
         cout << "Enter Password: ";
         getline(cin, password);
 
-
-        // Assign auto-incremented ID
         userId = nextId++;
 
-        members.emplace_back(id, name, password);
+        //emplace_back to take constructor arguments directly
+        members.emplace_back(userId, name, password);
         cout << "Registration successful!\n";
-         cout << "Your Member ID is: " << userId << endl;
+        cout << "Your Member ID is: " << userId << endl;
     }
 
     ///2- Login
+    bool loginMember()
+    {
+        string name;
+        string password;
+
+        cout << "\n--- Member Login ---\n";
+        cout << "Enter Member Name: ";
+        cin >> name;
+
+        cout << "Enter Password: ";
+        cin >> password;
+
+        for (const auto& member : members)
+        {
+            if (member.name == name && member.password == password)
+            {
+                cout << "Login successful! Welcome, " << member.name << ".\n";
+                // Copy member details to current object
+                this->userId = member.userId;
+                this->name = member.name;
+                this->password = member.password;
+                return true;
+                
+            }
+        }
+
+        cout << "Invalid Member ID or Password.\n";
+        return false;
+    }
 
     ///3- BorrowBook Code
     void borrowBook(Library& library, int bookId)
@@ -392,7 +419,12 @@ int main()
             }
             else if (memberChoice == 2)
             {
-                ///Login Implementation
+                bool loginSuccess = currentMember.loginMember();
+                if (loginSuccess)
+                {
+                    currentMember.displayMenu();
+                }
+                
             }
         }
         else if (choice == 3)
