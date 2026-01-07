@@ -16,6 +16,26 @@ const int MAX_BORROW_DAYS = 30;
 
 using namespace std;
 
+// Helpper Functions
+bool isValidPositiveInt()
+{
+    if (cin.fail())
+    {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        return false;
+    }
+    return true;
+}
+
+string toLower(string s)
+{
+    for (char &c : s)
+        c = tolower(c);
+    return s;
+}
+
+
 /* ===================== Book ===================== */
 class Book
 {
@@ -64,7 +84,7 @@ public:
              << "| " << setw(30) << ("Title: " + title)
              << "| " << setw(28) << ("Author: " + author)
              << "| " << setw(28) << ("Category: " + category)
-             << "| " << setw(15) << ("Available: " + to_string(availableCopies))
+             << "| " << setw(15) << "Available: " << availableCopies
              << endl;
     }
 };
@@ -123,8 +143,7 @@ public:
             if (it->getBookId() == bookId)
             {
                 books.erase(it);
-                cout << GREEN << "Book removed successfully.\n"
-                     << RESET;
+                cout << GREEN << "Book removed successfully.\n"<< RESET;
                 return;
             }
         }
@@ -142,11 +161,12 @@ public:
     }
 
     /// 5- Search Book By Title
-    Book *searchBookByTitle(string title)
+    Book* searchBookByTitle(string title)
     {
+        title = toLower(title);
         for (auto &book : books)
         {
-            if (book.getTitle() == title)
+            if (toLower(book.getTitle()) == title)
                 return &book;
         }
         return nullptr;
@@ -283,8 +303,7 @@ public:
     {
         if (borrowedBooks.size() >= MAX_BORROW)
         {
-            cout << RED << "Borrowing limit reached.\n"
-                 << RESET;
+            cout << RED << "Borrowing limit reached.\n"<< RESET;
             return;
         }
 
@@ -296,8 +315,7 @@ public:
             int days = difftime(now, item.second) / (60 * 60 * 24);
             if (days > MAX_BORROW_DAYS)
             {
-                cout << RED << "You have overdue books, Must Return Book First\n"
-                     << RESET;
+                cout << RED << "You have overdue books, Must Return Book First\n"<< RESET;
                 return;
             }
         }
@@ -312,8 +330,7 @@ public:
 
         if (!library.borrowBook(bookId))
         {
-            cout << RED << "Book not available.\n"
-                 << RESET;
+            cout << RED << "Book not available.\n"<< RESET;
             return;
         }
 
@@ -322,7 +339,7 @@ public:
              << RESET;
     }
 
-    /// 3- Return Book Code
+    /// 4- Return Book Code
     void returnBook(Library &library, int bookId)
     {
         for (auto it = borrowedBooks.begin(); it != borrowedBooks.end(); ++it)
@@ -340,7 +357,7 @@ public:
              << RESET;
     }
 
-    /// 4- View Books
+    /// 5- View Borrowed Books
     void viewBorrowedBooks() const
     {
         if (borrowedBooks.empty())
@@ -367,7 +384,33 @@ public:
         library.displayALLBooks();
     }
 
-    /// 6- Display Menu
+
+    ///6- Search Book By Title
+    void searchBookByTitleUser(Library &library)
+    {
+        string title;
+        cout << YELLOW << "Enter Book Title: " << RESET;
+        cin.ignore();
+        getline(cin, title);
+
+        if (title.empty())
+        {
+            cout << RED << "Title cannot be empty.\n" << RESET;
+            return;
+        }
+
+        Book *book = library.searchBookByTitle(title);
+        if (!book)
+        {
+            cout << RED << "No book exists with this title.\n" << RESET;
+            return;
+        }
+
+        cout << GREEN << "\nBook Found:\n" << RESET;
+        book->displayInfo();
+    }
+
+    /// 8- Display Menu
     void displayMenu(Library &library) override
     {
         int choice;
@@ -379,6 +422,7 @@ public:
             cout << "2. Return Book\n";
             cout << "3. View Borrowed Books\n";
             cout << "4. View All Books\n";
+            cout << "5. Search Book By Title\n";
             cout << "0. Logout\n";
             cout << YELLOW << "Choice: " << RESET;
             cin >> choice;
@@ -390,6 +434,14 @@ public:
                 int bookId;
                 cout << YELLOW << "Enter Book ID: " << RESET;
                 cin >> bookId;
+
+                if (!isValidPositiveInt() || bookId <= 0)
+                {
+                    cout << RED << "Invalid Book ID. Please enter a positive number.\n"
+                         << RESET;
+                    break;
+                }
+
                 borrowBook(library, bookId);
                 break;
             }
@@ -399,6 +451,14 @@ public:
                 int bookId;
                 cout << YELLOW << "Enter Book ID: " << RESET;
                 cin >> bookId;
+
+                if (!isValidPositiveInt() || bookId <= 0)
+                {
+                    cout << RED << "Invalid Book ID. Please enter a positive number.\n"
+                         << RESET;
+                    break;
+                }
+
                 returnBook(library, bookId);
                 break;
             }
@@ -411,6 +471,10 @@ public:
                 viewAllBooks(library);
                 break;
 
+            case 5:
+                searchBookByTitleUser(library);
+                break;
+
             case 0:
                 cout << "Logging out...\n";
                 break;
@@ -419,7 +483,8 @@ public:
                 cout << RED << "Invalid choice.\n"
                      << RESET;
             }
-        } while (choice != 0);
+        }
+        while (choice != 0);
     }
 
     string getName() const
@@ -589,16 +654,24 @@ public:
                 int bookId;
                 cout << YELLOW << "Enter Book ID to search: " << RESET;
                 cin >> bookId;
+
+                if (!isValidPositiveInt() || bookId <= 0)
+                {
+                    cout << RED << "Invalid Book ID. Please enter a positive number.\n"
+                         << RESET;
+                    break;
+                }
+
                 Book *book = searchBookById(library, bookId);
+
                 if (book)
                 {
-                    cout << GREEN << "\nBook found:\n"
-                         << RESET;
+                    cout << GREEN << "\nBook found:\n" << RESET;
                     book->displayInfo();
                 }
                 else
                 {
-                    cout << RED << "\nBook not found.\n"
+                    cout << RED << "\nNo book exists with this ID.\n"
                          << RESET;
                 }
                 break;
@@ -634,7 +707,8 @@ public:
                 cout << RED << "Invalid choice.\n"
                      << RESET;
             }
-        } while (choice != 0);
+        }
+        while (choice != 0);
     }
 };
 
@@ -646,9 +720,10 @@ int main()
     library.addBook("C++ Programming", "Bjarne Stroustrup", "Programming", 3);
     library.addBook("Algorithms", "Robert Sedgewick", "Computer Science", 1);
 
-    int choice;
+    string choice;
     while (true)
     {
+
         cout << BLUE << BOLD;
         cout << "=========================================\n";
         cout << "     LIBRARY MANAGEMENT SYSTEM\n";
@@ -663,7 +738,7 @@ int main()
         cout << YELLOW << "Enter your choice: " << RESET;
         cin >> choice;
 
-        if (choice == 1)
+        if (choice == "1")
         {
 
             if (librarian.authenticateLibrarian())
@@ -671,35 +746,40 @@ int main()
                 librarian.displayMenu(library);
             }
         }
-        else if (choice == 2)
+        else if (choice == "2")
         {
             Member *currentMember = nullptr;
-            int memberChoice;
+            string memberChoice;
             cout << "\n1. Register\n2. Login\nChoice: ";
             cin >> memberChoice;
 
-            if (memberChoice == 1)
+            if (memberChoice == "1")
             {
                 currentMember = new Member();
                 currentMember->registerMember(library);
             }
-            else if (memberChoice == 2)
+            else if (memberChoice == "2")
             {
                 currentMember = Member::loginMember(library);
             }
+            else
+            {
+                cout <<RED<< "\nInvalid choice. Try again.\n"<<RESET;
+            }
+
             if (currentMember != nullptr)
             {
                 currentMember->displayMenu(library);
             }
         }
-        else if (choice == 3)
+        else if (choice == "3")
         {
             cout << "Exiting system...\n";
             break;
         }
         else
         {
-            cout << "Invalid choice. Try again.\n";
+            cout <<RED<< "\nInvalid choice. Try again.\n"<<RESET;
         }
     }
     return 0;
