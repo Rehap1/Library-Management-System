@@ -8,6 +8,8 @@ A console-based application designed to manage the operations of a library.
 - **Add Book**: Add new books to the library inventory.
 - **Remove Book**: Remove books from the inventory.
 - **View All Books**: Display the list of all books in the library.
+- **Search Books by ID**:  Search a spacific book by its Id.
+- 
 
 ### Member Features
 - **Registration**: Register as a new member.

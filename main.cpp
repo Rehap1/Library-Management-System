@@ -60,7 +60,7 @@ public:
     {
 
         cout << left
-             << setw(10) << ("ID: " + to_string(bookId))
+             << setw(10) << "ID: " << bookId
              << "| " << setw(30) << ("Title: " + title)
              << "| " << setw(28) << ("Author: " + author)
              << "| " << setw(28) << ("Category: " + category)
@@ -68,6 +68,7 @@ public:
              << endl;
     }
 };
+
 
 class Member;
 /* ===================== Library ===================== */
@@ -218,9 +219,6 @@ class Member : public User
 {
 private:
     vector<pair<Book *, time_t>> borrowedBooks;
-
-    // Static container for all members
-    static vector<Member> members; // shared
     static int nextId;             // auto-increment counter
 
 public:
@@ -247,7 +245,8 @@ public:
         this->password = password;
 
         library.addMember(this);
-        cout << GREEN << "\nRegistration successful!\n" << RESET;
+        cout << GREEN << "\nRegistration successful!\n"
+             << RESET;
         cout << GREEN << "Your Member ID is: " << userId << RESET << endl;
     }
 
@@ -268,12 +267,14 @@ public:
         {
             if (member->name == name && member->password == password)
             {
-                cout << GREEN << "Login successful! Welcome, " << member->name << ".\n" << RESET;
+                cout << GREEN << "Login successful! Welcome, " << member->name << ".\n"
+                     << RESET;
                 return member;
             }
         }
 
-        cout << RED << "Invalid Member ID or Password.\n" << RESET;
+        cout << RED << "Invalid Member ID or Password.\n"
+             << RESET;
         return nullptr;
     }
 
@@ -282,7 +283,8 @@ public:
     {
         if (borrowedBooks.size() >= MAX_BORROW)
         {
-            cout << RED << "Borrowing limit reached.\n" << RESET;
+            cout << RED << "Borrowing limit reached.\n"
+                 << RESET;
             return;
         }
 
@@ -294,7 +296,8 @@ public:
             int days = difftime(now, item.second) / (60 * 60 * 24);
             if (days > MAX_BORROW_DAYS)
             {
-                cout << RED << "You have overdue books.\n" << RESET;
+                cout << RED << "You have overdue books, Must Return Book First\n"
+                     << RESET;
                 return;
             }
         }
@@ -302,18 +305,21 @@ public:
         Book *book = library.searchBookById(bookId);
         if (!book)
         {
-            cout << RED << "Book not found.\n" << RESET;
+            cout << RED << "Book not found.\n"
+                 << RESET;
             return;
         }
 
         if (!library.borrowBook(bookId))
         {
-            cout << RED << "Book not available.\n" << RESET;
+            cout << RED << "Book not available.\n"
+                 << RESET;
             return;
         }
 
         borrowedBooks.push_back({book, now});
-        cout << GREEN << "Book borrowed successfully.\n" << RESET;
+        cout << GREEN << "Book borrowed successfully.\n"
+             << RESET;
     }
 
     /// 3- Return Book Code
@@ -325,11 +331,13 @@ public:
             {
                 library.returnBook(bookId);
                 borrowedBooks.erase(it);
-                cout << GREEN << "Book returned successfully.\n" << RESET;
+                cout << GREEN << "Book returned successfully.\n"
+                     << RESET;
                 return;
             }
         }
-        cout << RED << "You did not borrow this book.\n" << RESET;
+        cout << RED << "You did not borrow this book.\n"
+             << RESET;
     }
 
     /// 4- View Books
@@ -337,7 +345,8 @@ public:
     {
         if (borrowedBooks.empty())
         {
-            cout <<RED<< "No borrowed books.\n"<<RESET;
+            cout << RED << "No borrowed books.\n"
+                 << RESET;
             return;
         }
         time_t now = time(nullptr);
@@ -346,7 +355,8 @@ public:
         {
             int days = difftime(now, item.second) / (60 * 60 * 24);
             item.first->displayInfo();
-            cout <<YELLOW<< "Borrowed for: " << days << " days\n"<<RESET;
+            cout << YELLOW << "Borrowed for: " << days << " days\n"
+                 << RESET;
             cout << "-------------------------\n";
         }
     }
@@ -370,7 +380,7 @@ public:
             cout << "3. View Borrowed Books\n";
             cout << "4. View All Books\n";
             cout << "0. Logout\n";
-            cout <<YELLOW<< "Choice: "<<RESET;
+            cout << YELLOW << "Choice: " << RESET;
             cin >> choice;
 
             switch (choice)
@@ -378,7 +388,7 @@ public:
             case 1:
             {
                 int bookId;
-                cout <<YELLOW<< "Enter Book ID: "<<RESET;
+                cout << YELLOW << "Enter Book ID: " << RESET;
                 cin >> bookId;
                 borrowBook(library, bookId);
                 break;
@@ -387,7 +397,7 @@ public:
             case 2:
             {
                 int bookId;
-                cout <<YELLOW<< "Enter Book ID: "<<RESET;
+                cout << YELLOW << "Enter Book ID: " << RESET;
                 cin >> bookId;
                 returnBook(library, bookId);
                 break;
@@ -406,7 +416,8 @@ public:
                 break;
 
             default:
-                cout <<RED<< "Invalid choice.\n"<<RESET;
+                cout << RED << "Invalid choice.\n"
+                     << RESET;
             }
         } while (choice != 0);
     }
