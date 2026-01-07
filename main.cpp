@@ -718,7 +718,13 @@ int main()
     Librarian librarian(1, "admin", "admin123");
 
     library.addBook("C++ Programming", "Bjarne Stroustrup", "Programming", 3);
-    library.addBook("Algorithms", "Robert Sedgewick", "Computer Science", 1);
+    library.addBook("Algorithms", "Robert Sedgewick", "Computer Science", 1);library.addBook("Clean Code", "Robert C. Martin", "Software Engineering", 4);
+    library.addBook("Design Patterns", "Erich Gamma", "Software Engineering", 2);
+    library.addBook("Operating System Concepts", "Abraham Silberschatz", "Operating Systems", 3);
+    library.addBook("Database System Concepts", "Henry F. Korth", "Databases", 2);
+    library.addBook("Artificial Intelligence: A Modern Approach", "Stuart Russell", "Artificial Intelligence", 1);
+
+
 
     string choice;
     while (true)
