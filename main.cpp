@@ -62,42 +62,77 @@ private:
     vector<Book> books;
 
 public:
-    ///1- Add
+    ///1- Add Book
     void addBook(const Book& book)
     {
-
+        books.push_back(book);
     }
 
-    ///2- Update Book
+    ///2- Update Book ByID
     void updateBook (int bookId, const Book& book)
     {
-
+        for (auto& b : books)
+        {
+            if (b.getBookId() == bookId)
+            {
+                b = book; // replace old book
+                cout << "Book updated successfully.\n";
+                return;
+            }
+        }
+        cout << "Book not found.\n";
     }
 
 
     ///3- Remove Book
-    void removeBook(int bookId)
+    void removeBookById(int bookId)
     {
-
+        for(auto it = books.begin(); it != books.end(); ++it)
+        {
+            if (it->getBookId() == bookId)
+            {
+                books.erase(it);
+                cout << "Book removed successfully.\n";
+                return;
+            }
+        }
     }
 
     ///4- Search Book By ID
     Book* searchBookById(int bookId)
     {
-
+        for (auto& book : books)
+        {
+            if (book.getBookId() == bookId)
+                return &book;
+        }
+        return nullptr;
     }
 
     ///5- Search Book By Title
-     Book* searchBookById(string title)
+    Book* searchBookByTitle(string title)
     {
-
+        for (auto& book : books)
+        {
+            if (book.getTitle() == title)
+                return &book;
+        }
+        return nullptr;
     }
-
 
     ///6- Display Books
     void displayBooksWithIDs() const
     {
+         if (books.empty())
+        {
+            cout << "Library is empty.\n";
+            return;
+        }
 
+        for (const auto& book : books)
+        {
+            book.displayInfo();
+        }
     }
 };
 
@@ -144,7 +179,6 @@ public:
         : User(id, n, p) {}
 
     /// 1- Register
-
     void registerMember()
     {
         string name, password;
@@ -307,23 +341,67 @@ public:
     ///2- Add Book
     void addBook(Library& library)
     {
+        int id, copies;
+        string title, author, category;
+
+        cout << "Enter Book ID: ";
+        cin >> id;
+        cin.ignore();
+
+        cout << "Enter Title: ";
+        getline(cin, title);
+
+        cout << "Enter Author: ";
+        getline(cin, author);
+
+        cout << "Enter Category: ";
+        getline(cin, category);
+
+        cout << "Enter Available Copies: ";
+        cin >> copies;
+
+        library.addBook(Book(id, title, author, category, copies));
     }
 
     ///3- Update Book
-    void updateBook (int bookId, const Book& book)
+    void updateBook (Library& library)
     {
+        int id, copies;
+        string title, author, category;
 
+        cout << "Enter Book ID to update: ";
+        cin >> id;
+        cin.ignore();
+
+        cout << "Enter New Title: ";
+        getline(cin, title);
+
+        cout << "Enter New Author: ";
+        getline(cin, author);
+
+        cout << "Enter New Category: ";
+        getline(cin, category);
+
+        cout << "Enter New Available Copies: ";
+        cin >> copies;
+
+        library.updateBook(id, Book(id, title, author, category, copies));
     }
 
     ///4- Remove Book
     void removeBook(Library& library)
     {
+        int id;
+        cout << "Enter Book ID to remove: ";
+        cin >> id;
+
+        library.removeBookById(id);
     }
 
     ///5- Display Borrowed Books
     void displayBorrowedBooks()
     {
-
+        cout << "Feature not implemented yet.\n";
     }
 
     ///6- Search Book By ID
@@ -333,7 +411,7 @@ public:
     }
 
     ///7- Search Book By Title
-     Book* searchBookById(string title)
+     Book* searchBookByTitle(string title)
     {
 
     }
@@ -341,14 +419,16 @@ public:
     ///8- Librarian Menu
     void displayMenu() override
     {
+        Library library; // Local library instance for demonstration
         int choice;
 
         do
         {
             cout << "\n--- Librarian Menu ---\n";
             cout << "1. Add Book\n";
-            cout << "2. Remove Book\n";
-            cout << "3. View All Books\n";
+            cout << "2. Update Book\n";
+            cout << "3. Remove Book\n";
+            cout << "4. Display All Books\n";
             cout << "0. Logout\n";
             cout << "Choice: ";
             cin >> choice;
@@ -356,21 +436,22 @@ public:
             switch (choice)
             {
             case 1:
-            {
-                ///Add Book
-                cout << "Book added successfully.\n";
+                addBook(library);
                 break;
-            }
             case 2:
-            {
-                ///Remove Book
-                cout << "Book removed successfully.\n";
+                updateBook(library);
                 break;
-            }
             case 3:
-                ///Display
-                cout << "Book displayed successfully.\n";
+                removeBook(library);
                 break;
+            case 4:
+                library.displayBooksWithIDs();
+                break;
+            case 0:
+                cout << "Logging out...\n";
+                break;
+            default:
+                cout << "Invalid choice.\n";
             }
         }
         while (choice != 0);
@@ -378,9 +459,6 @@ public:
 
 
 };
-
-
-
 
 
 
