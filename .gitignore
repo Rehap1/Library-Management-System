@@ -1,0 +1,8 @@
+*.exe
+bin/
+obj/
+*.o
+*.obj
+.vscode/
+LibrarySystem.depend
+LibrarySystem.layout
