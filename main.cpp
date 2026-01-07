@@ -1,7 +1,11 @@
 #include <iostream>
-#include <iostream>
 #include <vector>
 #include <string>
+#include <ctime>
+
+const int MAX_BORROW = 3;
+const int MAX_BORROW_DAYS = 30;
+
 using namespace std;
 
 
@@ -54,14 +58,26 @@ public:
              << " | Available: " << availableCopies << endl;
     }
 };
-
+class Member;
 /* ===================== Library ===================== */
 class Library
 {
 private:
     vector<Book> books;
+    vector<Member*> members;
 
 public:
+
+    void addMember(Member* m)
+    {
+        members.push_back(m);
+    }
+
+    const vector<Member*>& getMembers() const
+    {
+        return members;
+    }
+
     ///1- Add Book
     void addBook(const Book& book)
     {
@@ -134,6 +150,29 @@ public:
             book.displayInfo();
         }
     }
+
+    ///7- Borrow Book
+    bool borrowBook(int bookId)
+    {
+        Book* book = searchBookById(bookId);
+        if (!book || !book->isAvailable())
+            return false;
+
+        book->decreaseCopies();
+        return true;
+    }
+
+    ///8- Return Book
+    bool returnBook(int bookId)
+    {
+        Book* book = searchBookById(bookId);
+        if (!book)
+            return false;
+
+        book->increaseCopies();
+        return true;
+    }
+
 };
 
 
@@ -151,7 +190,7 @@ public:
 
 
 
-    virtual void displayMenu() = 0;
+    virtual void displayMenu(Library& library) = 0;
 
     bool login(const string& pass) const
     {
@@ -167,7 +206,7 @@ public:
 class Member : public User
 {
 private:
-    vector<Book*> borrowedBooks;
+    vector<pair<Book*, time_t>> borrowedBooks;
 
     // Static container for all members
     static vector<Member> members;   // shared
@@ -177,9 +216,9 @@ public:
     Member() : User() {}
     Member(int id, string n, string p)
         : User(id, n, p) {}
-
+   
     /// 1- Register
-    void registerMember()
+    void registerMember(Library& library)
     {
         string name, password;
 
@@ -193,15 +232,17 @@ public:
         getline(cin, password);
 
         userId = nextId++;
+        this->name = name;
+        this->password = password;
 
-        //emplace_back to take constructor arguments directly
-        members.emplace_back(userId, name, password);
+        library.addMember(this); 
         cout << "Registration successful!\n";
         cout << "Your Member ID is: " << userId << endl;
+
     }
 
     ///2- Login
-    bool loginMember()
+    static Member* loginMember(Library& library)
     {
         string name;
         string password;
@@ -213,50 +254,92 @@ public:
         cout << "Enter Password: ";
         cin >> password;
 
-        for (const auto& member : members)
+        for (Member* member : library.getMembers())
         {
-            if (member.name == name && member.password == password)
+            if (member->name == name && member->password == password)
             {
-                cout << "Login successful! Welcome, " << member.name << ".\n";
-                // Copy member details to current object
-                this->userId = member.userId;
-                this->name = member.name;
-                this->password = member.password;
-                return true;
-                
+                cout << "Login successful! Welcome, " << member->name << ".\n";
+                return member;
             }
         }
 
         cout << "Invalid Member ID or Password.\n";
-        return false;
+        return nullptr;
     }
 
     ///3- BorrowBook Code
     void borrowBook(Library& library, int bookId)
     {
+        if (borrowedBooks.size() >= MAX_BORROW) {
+            cout << "Borrowing limit reached.\n";
+            return;
+        }
 
+        time_t now = time(nullptr);
+
+        // Check overdue books
+        for (const auto& item : borrowedBooks) {
+            int days = difftime(now, item.second) / (60 * 60 * 24);
+            if (days > MAX_BORROW_DAYS) {
+                cout << "You have overdue books.\n";
+                return;
+            }
+        }
+
+        Book* book = library.searchBookById(bookId);
+        if (!book) {
+            cout << "Book not found.\n";
+            return;
+        }
+
+        if (!library.borrowBook(bookId)) {
+            cout << "Book not available.\n";
+            return;
+        }
+
+        borrowedBooks.push_back({book, now});
+        cout << "Book borrowed successfully.\n";
     }
 
     ///3- Return Book Code
-    void returnBook(int bookId)
+    void returnBook(Library& library, int bookId)
     {
-
+        for (auto it = borrowedBooks.begin(); it != borrowedBooks.end(); ++it) {
+            if (it->first->getBookId() == bookId) {
+                library.returnBook(bookId);
+                borrowedBooks.erase(it);
+                cout << "Book returned successfully.\n";
+                return;
+            }
+        }
+        cout << "You did not borrow this book.\n";
     }
 
     ///4- View Books
     void viewBorrowedBooks() const
     {
+        if (borrowedBooks.empty()) {
+            cout << "No borrowed books.\n";
+            return;
+        }
+        time_t now = time(nullptr);
 
+        for (const auto& item : borrowedBooks) {
+            int days = difftime(now, item.second) / (60 * 60 * 24);
+            item.first->displayInfo();
+            cout << "Borrowed for: " << days << " days\n";
+            cout << "-------------------------\n";
+        }
     }
 
     ///5- View ALL Books
-    void viewAllBooks() const
+    void viewAllBooks(const Library& library) const
     {
-
+        library.displayBooksWithIDs();
     }
 
     ///6- Display Menu
-    void displayMenu() override
+    void displayMenu(Library& library) override
     {
         int choice;
 
@@ -273,21 +356,28 @@ public:
 
             switch (choice)
             {
-            case 1:
-            {
+            case 1: {
+                int bookId;
+                cout << "Enter Book ID: ";
+                cin >> bookId;
+                borrowBook(library, bookId);
                 break;
             }
-            case 2:
-            {
 
+            case 2: {
+                int bookId;
+                cout << "Enter Book ID: ";
+                cin >> bookId;
+                returnBook(library, bookId);
                 break;
             }
+
             case 3:
-
+                viewBorrowedBooks();
                 break;
 
             case 4:
-
+                viewAllBooks(library);
                 break;
 
             case 0:
@@ -301,9 +391,17 @@ public:
         while (choice != 0);
     }
 
+    string getName() const 
+    { 
+        return name; 
+    }
+    string getPassword() const 
+    { 
+        return password; 
+    }
+
 };
 
-vector<Member> Member::members;
 int Member::nextId = 1;
 
 
@@ -399,27 +497,32 @@ public:
     }
 
     ///5- Display Borrowed Books
-    void displayBorrowedBooks()
+    void displayBorrowedBooks(Library& library)
     {
-        cout << "Feature not implemented yet.\n";
+        cout << "\n--- Borrowed Books Report ---\n";
+
+        for (Member* member : library.getMembers())
+        {
+            cout << "Member: " << member->getName() << endl;
+            member->viewBorrowedBooks();
+        }
     }
 
     ///6- Search Book By ID
-    Book* searchBookById(int bookId)
+    Book* searchBookById(Library& library, int bookId)
     {
-
+        return library.searchBookById(bookId);
     }
 
     ///7- Search Book By Title
-     Book* searchBookByTitle(string title)
+     Book* searchBookByTitle(Library& library, string title)
     {
-
+        return library.searchBookByTitle(title);
     }
 
     ///8- Librarian Menu
-    void displayMenu() override
+    void displayMenu(Library& library) override
     {
-        Library library; // Local library instance for demonstration
         int choice;
 
         do
@@ -429,6 +532,7 @@ public:
             cout << "2. Update Book\n";
             cout << "3. Remove Book\n";
             cout << "4. Display All Books\n";
+            cout << "5. Display Borrowed Books Report\n";
             cout << "0. Logout\n";
             cout << "Choice: ";
             cin >> choice;
@@ -447,6 +551,9 @@ public:
             case 4:
                 library.displayBooksWithIDs();
                 break;
+            case 5:
+                displayBorrowedBooks(library);
+                break;
             case 0:
                 cout << "Logging out...\n";
                 break;
@@ -464,7 +571,11 @@ public:
 
 int main()
 {
+    Library library;
     Librarian librarian(1, "admin", "admin123");
+
+    library.addBook(Book(101, "C++ Programming", "Bjarne Stroustrup", "Programming", 3));
+    library.addBook(Book(102, "Algorithms", "Robert Sedgewick", "Computer Science", 1));
 
     int choice;
     while (true)
@@ -481,28 +592,28 @@ int main()
 
             if (librarian.authenticateLibrarian())
             {
-                librarian.displayMenu();
+                librarian.displayMenu(library);
             }
         }
         else if (choice == 2)
         {
-            Member currentMember;
+            Member* currentMember = nullptr;
             int memberChoice;
             cout << "\n1. Register\n2. Login\nChoice: ";
             cin >> memberChoice;
 
             if (memberChoice == 1)
             {
-                currentMember.registerMember();
+                currentMember = new Member();
+                currentMember->registerMember(library);
             }
             else if (memberChoice == 2)
             {
-                bool loginSuccess = currentMember.loginMember();
-                if (loginSuccess)
-                {
-                    currentMember.displayMenu();
-                }
-                
+                currentMember = Member::loginMember(library);
+            }
+            if (currentMember != nullptr)
+            {
+                currentMember->displayMenu(library);
             }
         }
         else if (choice == 3)
