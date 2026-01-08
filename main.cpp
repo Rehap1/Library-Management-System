@@ -723,7 +723,8 @@ int main()
     library.addBook("Operating System Concepts", "Abraham Silberschatz", "Operating Systems", 3);
     library.addBook("Database System Concepts", "Henry F. Korth", "Databases", 2);
     library.addBook("Artificial Intelligence: A Modern Approach", "Stuart Russell", "Artificial Intelligence", 1);
-
+    library.addBook("Computer Networks", "Andrew S. Tanenbaum", "Networking", 2);
+    library.addBook("Software Engineering", "Ian Sommerville", "Software Engineering", 4);
 
 
     string choice;
